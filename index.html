@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BatterBowl Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --page: #f9f9f7;
+    --surface-1: #fcfcfb;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6;
+    --series-2: #1baf7a;
+    --series-3: #eda100;
+    --series-4: #008300;
+    --series-5: #4a3aa7;
+    --series-6: #e34948;
+    --series-7: #e87ba4;
+    --series-8: #eb6834;
+    --good: #0ca30c;
+    --critical: #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #0d0d0d;
+      --surface-1: #1a1a19;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-2: #199e70;
+      --series-3: #c98500;
+      --series-4: #008300;
+      --series-5: #9085e9;
+      --series-6: #e66767;
+      --series-7: #d55181;
+      --series-8: #d95926;
+      --good: #0ca30c;
+      --critical: #d03b3b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+  header p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+  #dataStatus { color: var(--text-muted); font-size: 0.8rem; margin-top: 6px; }
+  .upload-btn {
+    background: var(--series-1);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .upload-btn:hover { opacity: 0.9; }
+  #fileInput { display: none; }
+
+  .banner {
+    background: var(--surface-1);
+    border: 1px solid var(--critical);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .banner button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--grid);
+    margin-bottom: 20px;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .tab-btn.active {
+    color: var(--series-1);
+    border-bottom-color: var(--series-1);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .card h3 {
+    margin: 0 0 14px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .month-nav button {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  .month-nav button:disabled { opacity: 0.35; cursor: default; }
+  .month-nav select {
+    font-size: 0.95rem;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-1);
+    color: var(--text-primary);
+  }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .metric-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .metric-card .label { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; }
+  .metric-card .value { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  canvas { max-width: 100%; }
+
+  .range-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+  }
+  .range-row label { color: var(--text-secondary); margin-right: 6px; }
+  .range-row select {
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-1);
+    color: var(--text-primary);
+  }
+  .range-row .checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--grid); }
+  th { color: var(--text-muted); font-weight: 600; cursor: pointer; user-select: none; white-space: nowrap; }
+  th:hover { color: var(--text-primary); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .sort-arrow { font-size: 0.7rem; margin-left: 3px; }
+
+  .chart-box { position: relative; }
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 720px) {
+    .two-col { grid-template-columns: 1fr; }
+    header { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>BatterBowl Dashboard</h1>
+      <p>Monthly sales &amp; expenditure overview</p>
+      <div id="dataStatus"></div>
+    </div>
+    <div>
+      <button class="upload-btn" id="uploadBtn">Upload updated Excel</button>
+      <input type="file" id="fileInput" accept=".xlsx">
+    </div>
+  </header>
+
+  <div id="skipBanner" class="banner" style="display:none;">
+    <span id="skipBannerText"></span>
+    <button id="skipBannerClose">✕</button>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="month">Month View</button>
+    <button class="tab-btn" data-tab="compare">Compare Months</button>
+    <button class="tab-btn" data-tab="spending">Spending Breakdown</button>
+  </nav>
+
+  <!-- Month View -->
+  <section class="tab-panel active" id="tab-month">
+    <div class="month-nav">
+      <button id="prevMonth">‹</button>
+      <select id="monthSelect"></select>
+      <button id="nextMonth">›</button>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="label">Total Orders</div>
+        <div class="value" id="mv-orders">–</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Avg Order Value</div>
+        <div class="value" id="mv-aov">–</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Avg Orders / Day</div>
+        <div class="value" id="mv-aopd">–</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Margin</div>
+        <div class="value" id="mv-margin">–</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Expenditure by Category</h3>
+        <div class="chart-box"><canvas id="chartCategory"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Sales vs Cost vs Profit</h3>
+        <div class="chart-box"><canvas id="chartSalesCostProfit"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compare Months -->
+  <section class="tab-panel" id="tab-compare">
+    <div class="card">
+      <h3>Sales / Cost / Profit Trend</h3>
+      <div class="chart-box"><canvas id="chartTrend"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Monthly Sales vs Cost</h3>
+      <div class="chart-box"><canvas id="chartMonthlyBars"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Profit Margin %</h3>
+      <div class="chart-box"><canvas id="chartMargin"></canvas></div>
+    </div>
+  </section>
+
+  <!-- Spending Breakdown -->
+  <section class="tab-panel" id="tab-spending">
+    <div class="range-row">
+      <span>
+        <label for="rangeFrom">From</label>
+        <select id="rangeFrom"></select>
+      </span>
+      <span>
+        <label for="rangeTo">To</label>
+        <select id="rangeTo"></select>
+      </span>
+      <label class="checkbox-label">
+        <input type="checkbox" id="allTime" checked>
+        All time
+      </label>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Top Categories</h3>
+        <div class="chart-box"><canvas id="chartDonut"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>All Categories</h3>
+        <table id="spendTable">
+          <thead>
+            <tr>
+              <th data-col="name">Category<span class="sort-arrow"></span></th>
+              <th data-col="amount" class="num">Total Spend<span class="sort-arrow"></span></th>
+              <th data-col="pct" class="num">% of Total<span class="sort-arrow"></span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ---------- Month metadata ---------- */
+const MONTH_META = [
+  { key: 'sep', label: 'Sep 2024' },
+  { key: 'OCT24', label: 'Oct 2024' },
+  { key: 'NOV24', label: 'Nov 2024' },
+  { key: 'dec24', label: 'Dec 2024' },
+  { key: 'jan25', label: 'Jan 2025' },
+  { key: 'feb25', label: 'Feb 2025' },
+  { key: 'MARCH25', label: 'Mar 2025' },
+  { key: 'april 25', label: 'Apr 2025' },
+  { key: 'may25', label: 'May 2025' },
+  { key: 'june 25', label: 'Jun 2025' },
+  { key: ' july 25', label: 'Jul 2025' },
+  { key: 'aug25', label: 'Aug 2025' },
+  { key: 'sep25', label: 'Sep 2025' },
+  { key: 'oct25', label: 'Oct 2025' },
+  { key: 'nov25', label: 'Nov 2025' },
+  { key: 'dec25', label: 'Dec 2025' },
+  { key: 'jan26', label: 'Jan 2026' },
+  { key: 'feb26', label: 'Feb 2026' },
+  { key: 'march26', label: 'Mar 2026' },
+  { key: 'APRIL26', label: 'Apr 2026' },
+  { key: 'may26', label: 'May 2026' },
+];
+const MONTH_ORDER = MONTH_META.map(m => m.key);
+const MONTH_LABELS = Object.fromEntries(MONTH_META.map(m => [m.key, m.label]));
+
+/* ---------- Bundled default dataset ---------- */
+const DEFAULT_DATA = {"sep":{"categories":{"Raw Material":38350,"Vegetables":0,"Water":350,"Gas":610,"Packing Material":0,"Stock Balance":0,"Ai Sensy":7074,"Salaries":89688,"Rent":7500,"Electricity":2000,"Ads Online":3000,"Offline Promotion":32800,"Invideo":4200,"Domain":5000},"totalExp":190572,"totalOrders":0,"avgOrdersPerDay":0,"avgOrderValue":0,"totalSales":9671},"OCT24":{"categories":{"Raw Material":12842,"Vegetables":3445,"Water":1050,"Gas":612,"Packing Material":690,"Snacks":1869,"Others":10985,"Ai Sensy":3538,"Salaries":83666,"Rent":7500,"Electricity":2000,"Ads Online":30895,"Fpo":5000,"Offline Promotion":8206,"Weigh Mach":600,"Pics Fr Website":1700,"App":10000,"Otp Less":590},"totalExp":185188,"totalOrders":135,"avgOrdersPerDay":4.35,"avgOrderValue":323,"totalSales":40662},"NOV24":{"categories":{"Raw Material":0,"Vegetables":4643,"Water":2100,"Gas":613,"Packing Material":2878,"Snacks":3405,"Others":10136,"Ai Sensy":7040,"Salaries":74233,"Rent":7500,"Electricity":4661,"Ads Online":77438,"Offline Promotion":0,"Choppr":2274,"Heyo":240,"App":7500,"Otp Less":6000},"totalExp":210661,"totalOrders":252,"avgOrdersPerDay":8.4,"avgOrderValue":348,"totalSales":82824},"dec24":{"categories":{"Raw Material":26974,"Vegetables":4400,"Water":1400,"Gas":0,"Packing Material":1510,"Snacks":2020,"Others":2426,"Ai Sensy":5897,"Salaries":86167,"Rent":7500,"Electricity":5500,"Ads Online":51161,"Adshoot":20000,"Photographer":10000,"Choppr":2780,"Heyo":250,"App":20000},"totalExp":247985,"totalOrders":211,"avgOrdersPerDay":6.8,"avgOrderValue":329,"totalSales":65784},"jan25":{"categories":{"Raw Material":8849,"Vegetables":1695,"Water":700,"Gas":612,"Packing Material":860,"Snacks":2008,"Others":3640,"Ai Sensy":5877,"Salaries":45906,"Rent":7500,"Electricity":4943,"Ads Online":23915,"Reel Makers":1000,"Internet":500,"Heyo":250,"App":0},"totalExp":108255,"totalOrders":144,"avgOrdersPerDay":4.6,"avgOrderValue":318,"totalSales":42992},"feb25":{"categories":{"Raw Material":10429,"Vegetables":1520,"Water":350,"Gas":612,"Packing Material":1600,"Snacks":1590,"Others":2266,"Ai Sensy":5860,"Salaries":41600,"Rent":7500,"Electricity":3973,"Ads Online":19915,"Reel Makers":7074,"Internet":942,"Heyo":238,"App":0},"totalExp":105469,"totalOrders":134,"avgOrdersPerDay":4.7,"avgOrderValue":330,"totalSales":41929},"MARCH25":{"categories":{"Raw Material":11832,"Vegetables":1640,"Water":700,"Gas":0,"Packing Material":420,"Snacks":2220,"Others":4145,"Ai Sensy":9437,"Salaries":44036,"Rent":7500,"Electricity":2065,"Ads Online":20449,"Reel Makers":4364,"Internet":948,"Off Line Campaigns":2000,"Heyo":230,"App":0},"totalExp":111986,"totalOrders":150,"avgOrdersPerDay":4.8,"avgOrderValue":295,"totalSales":41929},"april 25":{"categories":{"Raw Material":8811,"Vegetables":1500,"Water":700,"Gas":647,"Packing Material":950,"Snacks":990,"Others":400,"French Fries/Parota":725,"Ai Sensy":2360,"Salaries":40755,"Rent":7500,"Electricity":3038,"Ads Online":19500,"Reel Makers":2090,"Internet":948,"Off Line Campaigns":4000,"Heyo":230,"App":433},"totalExp":95577,"totalOrders":134,"avgOrdersPerDay":4.4,"avgOrderValue":322,"totalSales":41396},"may25":{"categories":{"Raw Material":13979,"Vegetables":735,"Water":700,"Gas":0,"Packing Material":590,"Snacks":900,"Others":5747,"French Fries/Parota":1800,"Ai Sensy":3600,"Salaries":29950,"Rent":7500,"Electricity":2951,"Ads Online":17500,"Reel Makers":1000,"Internet":942,"Off Line Campaigns":0,"Heyo":0,"App":0},"totalExp":87894,"totalOrders":132,"avgOrdersPerDay":4.25,"avgOrderValue":320,"totalSales":41380},"june 25":{"categories":{"Raw Material":10925,"Vegetables":2280,"Water":1050,"Gas":0,"Packing Material":690,"Snacks":2485,"Others":703,"French Fries/Parota":1890,"Ai Sensy":4737,"Salaries":41958,"Rent":7500,"Electricity":2409,"Ads Online":26500,"Reel Makers":0,"Internet":942,"Off Line Campaigns":0,"Heyo":637,"App":0},"totalExp":104706,"totalOrders":144,"avgOrdersPerDay":4.8,"avgOrderValue":360,"totalSales":50147}," july 25":{"categories":{"Raw Material":13608,"Vegetables":1580,"Water":1050,"Gas":647,"Packing Material":610,"Snacks":2760,"Others":7748,"French Fries/Parota":1060,"Ai Sensy":0,"Salaries":44100,"Rent":7500,"Electricity":3561,"Ads Online":46894,"Reel Makers":0,"Internet":943,"Off Line Campaigns":0,"Heyo":107,"App":0},"totalExp":132168,"totalOrders":194,"avgOrdersPerDay":6.25,"avgOrderValue":328,"totalSales":61851},"aug25":{"categories":{"Raw Material":15917,"Vegetables":3620,"Water":700,"Gas":0,"Packing Material":650,"Snacks":800,"Others":12220,"French Fries/Parota":860,"Ai Sensy":5310,"Salaries":44100,"Rent":7500,"Electricity":3814,"Ads Online":44300,"Reel Makers":0,"Internet":940,"Off Line Campaigns":0,"Heyo/Bsnl":107,"App":0},"totalExp":140838,"totalOrders":176,"avgOrdersPerDay":5.66,"avgOrderValue":360,"totalSales":61188},"sep25":{"categories":{"Raw Material":13182,"Vegetables":2131,"Water":1050,"Gas":647,"Packing Material":460,"Snacks":0,"Others":3399,"French Fries/Parota":0,"Interakt":2950,"Salaries":31419,"Rent":7500,"Electricity":3851,"Ads Online":13600,"Reel Makers":0,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":461,"App":0},"totalExp":81593,"totalOrders":148,"avgOrdersPerDay":4.9,"avgOrderValue":348,"totalSales":49296},"oct25":{"categories":{"Raw Material":15261,"Vegetables":2360,"Water":1400,"Gas":652,"Packing Material":1830,"Snacks":0,"Others":5081,"French Fries/Parota":600,"Interakt":6488,"Salaries":40685,"Rent":7500,"Electricity":2929,"Ads Online":35200,"Reel Makers":2500,"Internet":942,"Off Line Campaigns":0,"Heyo/Bsnl":461,"App":14353},"totalExp":138242,"totalOrders":230,"avgOrdersPerDay":7.4,"avgOrderValue":366,"totalSales":80850},"nov25":{"categories":{"Raw Material":14970,"Vegetables":920,"Water":1050,"Gas":0,"Packing Material":740,"Snacks":0,"Others":10388,"French Fries/Parota":786,"Interakt":2124,"Salaries":41549,"Rent":7500,"Electricity":2684,"Ads Online":26000,"Reel Makers":0,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":461,"App":25000,"Website":2791},"totalExp":137906,"totalOrders":202,"avgOrdersPerDay":6.7,"avgOrderValue":352,"totalSales":69092},"dec25":{"categories":{"Raw Material":16190,"Uncategorized":4764,"Vegetables":1675,"Water":1400,"Gas":646,"Packing Material":1680,"Snacks":0,"Others":18820,"French Fries/Parota":340,"Interakt":9791,"Salaries":46566,"Rent":7500,"Electricity":3591,"Ads Online":39800,"Reel Makers":1215,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":568,"App":7000,"Website":0},"totalExp":162489,"totalOrders":261,"avgOrdersPerDay":8.4,"avgOrderValue":321,"totalSales":88940},"jan26":{"categories":{"Raw Material":19615,"Uncategorized":933,"Vegetables":829,"Water":2450,"Gas":647,"Packing Material":2430,"Snacks":0,"Others":12512,"New Purchase":0,"French Fries/Parota":280,"Interakt":5308,"Salaries":91452,"Rent":7500,"Electricity":5535,"Ads Online":49700,"Reel Makers":2460,"Internet":942,"Off Line Campaigns":0,"Heyo/Bsnl":847,"App":0,"Website":0},"totalExp":203440,"totalOrders":285,"avgOrdersPerDay":9.1,"avgOrderValue":314,"totalSales":95081},"feb26":{"categories":{"Raw Material":17331,"Uncategorized":4788,"Vegetables":2408,"Water":1050,"Gas":0,"Packing Material":2630,"Snacks":0,"Others":68156,"New Purchase":0,"French Fries/Parota":864,"Interakt":4130,"Salaries":106548,"Rent":7500,"Electricity":3959,"Ads Online":51750,"Reel Makers":0,"Internet":942,"Off Line Campaigns":3000,"Heyo/Bsnl":700,"App":10000,"Website":0},"totalExp":285756,"totalOrders":289,"avgOrdersPerDay":10.32,"avgOrderValue":304,"totalSales":96382},"march26":{"categories":{"Raw Material":14748,"Uncategorized":20685,"Vegetables":2257,"Water":1750,"Gas":646,"Packing Material":18446,"Snacks":0,"Others":34979,"New Purchase":0,"French Fries/Parota":2147,"Interakt":8257,"Salaries":174286,"Rent":7500,"Electricity":4983,"Ads Online":57600,"Reel Makers":3165,"Internet":942,"Off Line Campaigns":10000,"Heyo/Bsnl":700,"App":0,"Website":3892},"totalExp":366983,"totalOrders":497,"avgOrdersPerDay":16,"avgOrderValue":325,"totalSales":167993},"APRIL26":{"categories":{"Raw Material":22815,"Uncategorized":17346,"Vegetables":480,"Water":3150,"Gas":689,"Packing Material":2885,"Snacks":0,"Others":46098,"New Purchase":0,"French Fries/Parota":1610,"Interakt":8835,"Salaries":193474,"Rent":7500,"Electricity":6418,"Ads Online":133800,"Reel Makers":1000,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":700,"App":0,"Website":0},"totalExp":447743,"totalOrders":471,"avgOrdersPerDay":15.7,"avgOrderValue":315,"totalSales":148603},"may26":{"categories":{"Raw Material":17143,"Uncategorized":25186,"Vegetables":2281,"Water":6300,"Gas":0,"Packing Material":6240,"Snacks":0,"Others":24863,"New Purchase":0,"French Fries/Parota":1010,"Interakt":7521,"Salaries":210410,"Rent":7500,"Electricity":5615,"Ads Online":87990,"Reel Makers":4000,"Internet":942,"Off Line Campaigns":0,"Heyo/Bsnl":696,"App":0,"Website":0},"totalExp":407697,"totalOrders":614,"avgOrdersPerDay":19.8,"avgOrderValue":302,"totalSales":185448}};
+
+/* ---------- Excel parser (mirrors the CLAUDE.md-documented layout) ---------- */
+const SPECIAL_TOTALCOL = ['total exp','total packed material','wastage','personal & eb','online sales','coupons','off line sales','total sales'];
+const SPECIAL_COLC = ['total orders','avg order/ day','avg order value'];
+
+function normalizeCategory(label) {
+  const collapsed = label.trim().replace(/\s+/g, ' ');
+  return collapsed.replace(/[A-Za-z]+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+function toNumber(v) {
+  if (v === undefined || v === null) return 0;
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') {
+    const t = v.trim();
+    if (t === '') return 0;
+    const n = parseFloat(t);
+    return isNaN(n) ? 0 : n;
+  }
+  return 0;
+}
+
+function cellValue(ws, row, col) {
+  const addr = XLSX.utils.encode_cell({ r: row - 1, c: col - 1 });
+  const cell = ws[addr];
+  return cell ? cell.v : undefined;
+}
+
+function parseSheet(ws) {
+  if (!ws['!ref']) return null;
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  const maxRow = range.e.r + 1;
+  const maxCol = range.e.c + 1;
+
+  let expRow = null;
+  for (let r = 1; r <= Math.min(maxRow, 10); r++) {
+    const v = cellValue(ws, r, 2);
+    if (v !== undefined && String(v).trim().toLowerCase() === 'expenditure') { expRow = r; break; }
+  }
+  if (expRow === null) return null;
+
+  let totalCol = null;
+  for (let c = 1; c <= maxCol; c++) {
+    const v = cellValue(ws, expRow, c);
+    if (v !== undefined && String(v).trim().toLowerCase().includes('total')) { totalCol = c; break; }
+  }
+  if (totalCol === null) return null;
+
+  const categories = {};
+  const specials = {};
+  let seenTotalExp = false;
+  let r = expRow + 1;
+  while (r <= maxRow) {
+    const labelRaw = cellValue(ws, r, 2);
+    const label = (labelRaw !== undefined && labelRaw !== null) ? String(labelRaw).trim() : '';
+    const labelLower = label.toLowerCase();
+
+    if (labelLower === '') {
+      if (!seenTotalExp) {
+        const val = toNumber(cellValue(ws, r, totalCol));
+        if (val !== 0) categories['Uncategorized'] = (categories['Uncategorized'] || 0) + val;
+      }
+      r++;
+      if (seenTotalExp && r > expRow + 40) break;
+      continue;
+    }
+
+    if (SPECIAL_TOTALCOL.includes(labelLower)) {
+      specials[labelLower] = toNumber(cellValue(ws, r, totalCol));
+      if (labelLower === 'total exp') seenTotalExp = true;
+    } else if (SPECIAL_COLC.includes(labelLower)) {
+      specials[labelLower] = toNumber(cellValue(ws, r, 3));
+    } else if (!seenTotalExp) {
+      const val = toNumber(cellValue(ws, r, totalCol));
+      const catName = normalizeCategory(label);
+      categories[catName] = (categories[catName] || 0) + val;
+    }
+
+    r++;
+    if (seenTotalExp && labelLower === 'total sales') break;
+  }
+
+  return {
+    categories,
+    totalExp: specials['total exp'] || 0,
+    totalOrders: specials['total orders'] || 0,
+    avgOrdersPerDay: specials['avg order/ day'] || 0,
+    avgOrderValue: specials['avg order value'] || 0,
+    totalSales: specials['total sales'] || 0,
+  };
+}
+
+function parseWorkbook(workbook) {
+  const data = {};
+  const skipped = [];
+  for (const key of MONTH_ORDER) {
+    const ws = workbook.Sheets[key];
+    if (!ws) { skipped.push(key); continue; }
+    const parsed = parseSheet(ws);
+    if (!parsed) { skipped.push(key); continue; }
+    data[key] = parsed;
+  }
+  return { data, skipped };
+}
+
+/* ---------- App state ---------- */
+let APP_DATA = null;
+let uploadedAt = null;
+let currentMonthIndex = 0;
+const charts = {};
+
+function fmtINR(n) {
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+function availableMonths() {
+  return MONTH_ORDER.filter(k => APP_DATA[k]);
+}
+
+function monthMetrics(key) {
+  const m = APP_DATA[key];
+  const profit = m.totalSales - m.totalExp;
+  const margin = m.totalSales !== 0 ? (profit / m.totalSales) * 100 : 0;
+  return { ...m, profit, margin };
+}
+
+function loadData() {
+  const stored = localStorage.getItem('batterbowl_data');
+  const storedAt = localStorage.getItem('batterbowl_data_uploaded_at');
+  if (stored) {
+    try {
+      APP_DATA = JSON.parse(stored);
+      uploadedAt = storedAt;
+      return;
+    } catch (e) { /* fall through to default */ }
+  }
+  APP_DATA = DEFAULT_DATA;
+  uploadedAt = null;
+}
+
+function updateDataStatus() {
+  const el = document.getElementById('dataStatus');
+  if (uploadedAt) {
+    const d = new Date(uploadedAt);
+    el.textContent = `Showing data uploaded on ${d.toLocaleDateString('en-IN')} ${d.toLocaleTimeString('en-IN')}`;
+  } else {
+    el.textContent = 'Showing bundled default dataset';
+  }
+}
+
+/* ---------- Chart helpers ---------- */
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function styleVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+const gridColor = () => styleVar('--grid');
+const mutedColor = () => styleVar('--text-muted');
+const textColor = () => styleVar('--text-secondary');
+
+/* ---------- Month View ---------- */
+function populateMonthSelect() {
+  const sel = document.getElementById('monthSelect');
+  sel.innerHTML = '';
+  availableMonths().forEach(key => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = MONTH_LABELS[key] || key;
+    sel.appendChild(opt);
+  });
+  sel.selectedIndex = currentMonthIndex;
+}
+
+function renderMonthView() {
+  const months = availableMonths();
+  if (months.length === 0) return;
+  currentMonthIndex = Math.max(0, Math.min(currentMonthIndex, months.length - 1));
+  const key = months[currentMonthIndex];
+  const m = monthMetrics(key);
+
+  document.getElementById('monthSelect').selectedIndex = currentMonthIndex;
+  document.getElementById('prevMonth').disabled = currentMonthIndex === 0;
+  document.getElementById('nextMonth').disabled = currentMonthIndex === months.length - 1;
+
+  document.getElementById('mv-orders').textContent = m.totalOrders.toLocaleString('en-IN');
+  document.getElementById('mv-aov').textContent = fmtINR(m.avgOrderValue);
+  document.getElementById('mv-aopd').textContent = m.avgOrdersPerDay.toFixed(1);
+  const marginEl = document.getElementById('mv-margin');
+  marginEl.textContent = m.margin.toFixed(1) + '%';
+  marginEl.style.color = m.margin >= 0 ? styleVar('--good') : styleVar('--critical');
+
+  const catEntries = Object.entries(m.categories).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  destroyChart('chartCategory');
+  charts.chartCategory = new Chart(document.getElementById('chartCategory'), {
+    type: 'bar',
+    data: {
+      labels: catEntries.map(e => e[0]),
+      datasets: [{
+        data: catEntries.map(e => e[1]),
+        backgroundColor: styleVar('--series-1'),
+        borderRadius: 4,
+        maxBarThickness: 22,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmtINR(ctx.parsed.x) } }
+      },
+      scales: {
+        x: { grid: { color: gridColor() }, ticks: { color: mutedColor(), callback: v => fmtINR(v) } },
+        y: { grid: { display: false }, ticks: { color: textColor() } }
+      }
+    }
+  });
+
+  destroyChart('chartSalesCostProfit');
+  charts.chartSalesCostProfit = new Chart(document.getElementById('chartSalesCostProfit'), {
+    type: 'bar',
+    data: {
+      labels: ['Sales', 'Cost', 'Profit'],
+      datasets: [{
+        data: [m.totalSales, m.totalExp, m.profit],
+        backgroundColor: [styleVar('--series-1'), styleVar('--series-8'), m.profit >= 0 ? styleVar('--good') : styleVar('--critical')],
+        borderRadius: 4,
+        maxBarThickness: 60,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmtINR(ctx.parsed.y) } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: textColor() } },
+        y: { grid: { color: gridColor() }, ticks: { color: mutedColor(), callback: v => fmtINR(v) } }
+      }
+    }
+  });
+}
+
+/* ---------- Compare Months ---------- */
+function renderCompareView() {
+  const months = availableMonths();
+  const labels = months.map(k => MONTH_LABELS[k] || k);
+  const sales = months.map(k => APP_DATA[k].totalSales);
+  const cost = months.map(k => APP_DATA[k].totalExp);
+  const profit = months.map((k, i) => sales[i] - cost[i]);
+  const margin = months.map((k, i) => sales[i] !== 0 ? (profit[i] / sales[i]) * 100 : 0);
+
+  destroyChart('chartTrend');
+  charts.chartTrend = new Chart(document.getElementById('chartTrend'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Sales', data: sales, borderColor: styleVar('--series-1'), backgroundColor: styleVar('--series-1'), tension: 0.25, pointRadius: 3, borderWidth: 2 },
+        { label: 'Cost', data: cost, borderColor: styleVar('--series-8'), backgroundColor: styleVar('--series-8'), tension: 0.25, pointRadius: 3, borderWidth: 2 },
+        { label: 'Profit', data: profit, borderColor: styleVar('--series-4'), backgroundColor: styleVar('--series-4'), tension: 0.25, pointRadius: 3, borderWidth: 2 },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: textColor() } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtINR(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: mutedColor() } },
+        y: { grid: { color: gridColor() }, ticks: { color: mutedColor(), callback: v => fmtINR(v) } }
+      }
+    }
+  });
+
+  destroyChart('chartMonthlyBars');
+  charts.chartMonthlyBars = new Chart(document.getElementById('chartMonthlyBars'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Sales', data: sales, backgroundColor: styleVar('--series-1'), borderRadius: 3, maxBarThickness: 18 },
+        { label: 'Cost', data: cost, backgroundColor: styleVar('--series-8'), borderRadius: 3, maxBarThickness: 18 },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: textColor() } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtINR(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: mutedColor() } },
+        y: { grid: { color: gridColor() }, ticks: { color: mutedColor(), callback: v => fmtINR(v) } }
+      }
+    }
+  });
+
+  destroyChart('chartMargin');
+  charts.chartMargin = new Chart(document.getElementById('chartMargin'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{ label: 'Margin %', data: margin, borderColor: styleVar('--series-1'), backgroundColor: styleVar('--series-1'), tension: 0.25, pointRadius: 3, borderWidth: 2 }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.parsed.y.toFixed(1)}%` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: mutedColor() } },
+        y: { grid: { color: gridColor() }, ticks: { color: mutedColor(), callback: v => v + '%' } }
+      }
+    }
+  });
+}
+
+/* ---------- Spending Breakdown ---------- */
+let sortState = { col: 'amount', dir: 'desc' };
+
+function populateRangeSelects() {
+  const months = availableMonths();
+  const from = document.getElementById('rangeFrom');
+  const to = document.getElementById('rangeTo');
+  from.innerHTML = '';
+  to.innerHTML = '';
+  months.forEach(key => {
+    const label = MONTH_LABELS[key] || key;
+    from.appendChild(new Option(label, key));
+    to.appendChild(new Option(label, key));
+  });
+  from.selectedIndex = 0;
+  to.selectedIndex = months.length - 1;
+}
+
+function renderSpendingView() {
+  const months = availableMonths();
+  const allTime = document.getElementById('allTime').checked;
+  const fromSel = document.getElementById('rangeFrom');
+  const toSel = document.getElementById('rangeTo');
+  fromSel.disabled = allTime;
+  toSel.disabled = allTime;
+
+  let fromIdx = 0, toIdx = months.length - 1;
+  if (!allTime) {
+    fromIdx = months.indexOf(fromSel.value);
+    toIdx = months.indexOf(toSel.value);
+    if (fromIdx > toIdx) { [fromIdx, toIdx] = [toIdx, fromIdx]; }
+  }
+  const rangeMonths = months.slice(fromIdx, toIdx + 1);
+
+  const totals = {};
+  rangeMonths.forEach(key => {
+    const cats = APP_DATA[key].categories;
+    Object.entries(cats).forEach(([rawName, val]) => {
+      const name = normalizeCategory(rawName);
+      totals[name] = (totals[name] || 0) + val;
+    });
+  });
+
+  const grandTotal = Object.values(totals).reduce((a, b) => a + b, 0);
+  const rows = Object.entries(totals)
+    .map(([name, amount]) => ({ name, amount, pct: grandTotal !== 0 ? (amount / grandTotal) * 100 : 0 }))
+    .filter(r => r.amount > 0);
+
+  renderSpendTable(rows);
+  renderDonut(rows);
+}
+
+function renderSpendTable(rows) {
+  const sorted = [...rows].sort((a, b) => {
+    const dir = sortState.dir === 'asc' ? 1 : -1;
+    if (sortState.col === 'name') return a.name.localeCompare(b.name) * dir;
+    return (a[sortState.col] - b[sortState.col]) * dir;
+  });
+
+  document.querySelectorAll('#spendTable th').forEach(th => {
+    const arrow = th.querySelector('.sort-arrow');
+    arrow.textContent = th.dataset.col === sortState.col ? (sortState.dir === 'asc' ? '▲' : '▼') : '';
+  });
+
+  const tbody = document.querySelector('#spendTable tbody');
+  tbody.innerHTML = '';
+  sorted.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td class="num">${fmtINR(r.amount)}</td><td class="num">${r.pct.toFixed(1)}%</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderDonut(rows) {
+  const sorted = [...rows].sort((a, b) => b.amount - a.amount);
+  const top = sorted.slice(0, 7);
+  const rest = sorted.slice(7);
+  const restTotal = rest.reduce((sum, r) => sum + r.amount, 0);
+
+  const labels = top.map(r => r.name);
+  const data = top.map(r => r.amount);
+  const colors = ['--series-1', '--series-2', '--series-3', '--series-4', '--series-5', '--series-6', '--series-7'].map(styleVar);
+
+  if (restTotal > 0) {
+    labels.push('Other');
+    data.push(restTotal);
+    colors.push(mutedColor());
+  }
+
+  destroyChart('chartDonut');
+  charts.chartDonut = new Chart(document.getElementById('chartDonut'), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: styleVar('--surface-1'), borderWidth: 2 }] },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: textColor(), boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmtINR(ctx.parsed)}` } }
+      }
+    }
+  });
+}
+
+/* ---------- Tabs ---------- */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (tab === 'month') renderMonthView();
+  if (tab === 'compare') renderCompareView();
+  if (tab === 'spending') renderSpendingView();
+}
+
+/* ---------- Upload handling ---------- */
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const { data: parsed, skipped } = parseWorkbook(workbook);
+
+      if (Object.keys(parsed).length === 0) {
+        alert("Couldn't find any recognized month sheets in this file.");
+        return;
+      }
+
+      APP_DATA = parsed;
+      uploadedAt = new Date().toISOString();
+      localStorage.setItem('batterbowl_data', JSON.stringify(parsed));
+      localStorage.setItem('batterbowl_data_uploaded_at', uploadedAt);
+
+      const knownSkips = skipped.filter(k => k !== undefined);
+      if (knownSkips.length > 0) {
+        document.getElementById('skipBannerText').textContent =
+          `Skipped sheet(s) not recognized or missing expected layout: ${knownSkips.join(', ')}`;
+        document.getElementById('skipBanner').style.display = 'flex';
+      } else {
+        document.getElementById('skipBanner').style.display = 'none';
+      }
+
+      currentMonthIndex = availableMonths().length - 1;
+      updateDataStatus();
+      populateMonthSelect();
+      populateRangeSelects();
+      const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+      switchTab(activeTab);
+    } catch (err) {
+      alert('Failed to read this Excel file: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ---------- Init ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  updateDataStatus();
+  populateMonthSelect();
+  populateRangeSelects();
+  renderMonthView();
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  document.getElementById('prevMonth').addEventListener('click', () => {
+    currentMonthIndex--;
+    renderMonthView();
+  });
+  document.getElementById('nextMonth').addEventListener('click', () => {
+    currentMonthIndex++;
+    renderMonthView();
+  });
+  document.getElementById('monthSelect').addEventListener('change', e => {
+    currentMonthIndex = availableMonths().indexOf(e.target.value);
+    renderMonthView();
+  });
+
+  document.getElementById('rangeFrom').addEventListener('change', renderSpendingView);
+  document.getElementById('rangeTo').addEventListener('change', renderSpendingView);
+  document.getElementById('allTime').addEventListener('change', renderSpendingView);
+
+  document.querySelectorAll('#spendTable th').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (sortState.col === col) {
+        sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortState = { col, dir: col === 'name' ? 'asc' : 'desc' };
+      }
+      renderSpendingView();
+    });
+  });
+
+  document.getElementById('uploadBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+  document.getElementById('fileInput').addEventListener('change', e => {
+    if (e.target.files.length > 0) handleFile(e.target.files[0]);
+  });
+  document.getElementById('skipBannerClose').addEventListener('click', () => {
+    document.getElementById('skipBanner').style.display = 'none';
+  });
+});
+</script>
+</body>
+</html>
