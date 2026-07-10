@@ -285,6 +285,22 @@
         <div class="chart-box"><canvas id="chartSalesCostProfit"></canvas></div>
       </div>
     </div>
+
+    <div class="two-col">
+      <div class="card" id="uncatCard" style="display:none;">
+        <h3>Uncategorized Spend — Day by Day</h3>
+        <div class="chart-box"><canvas id="chartUncatDaily"></canvas></div>
+      </div>
+      <div class="card" id="salaryCard" style="display:none;">
+        <h3>Staff Salary Breakdown</h3>
+        <table id="salaryTable">
+          <thead>
+            <tr><th>Employee</th><th class="num">Days Attended</th><th class="num">Salary Paid</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <!-- Compare Months -->
@@ -372,7 +388,7 @@ const MONTH_ORDER = MONTH_META.map(m => m.key);
 const MONTH_LABELS = Object.fromEntries(MONTH_META.map(m => [m.key, m.label]));
 
 /* ---------- Bundled default dataset ---------- */
-const DEFAULT_DATA = {"sep":{"categories":{"Raw Material":38350,"Vegetables":0,"Water":350,"Gas":610,"Packing Material":0,"Stock Balance":0,"Ai Sensy":7074,"Salaries":89688,"Rent":7500,"Electricity":2000,"Ads Online":3000,"Offline Promotion":32800,"Invideo":4200,"Domain":5000},"totalExp":190572,"totalOrders":0,"avgOrdersPerDay":0,"avgOrderValue":0,"totalSales":9671},"OCT24":{"categories":{"Raw Material":12842,"Vegetables":3445,"Water":1050,"Gas":612,"Packing Material":690,"Snacks":1869,"Others":10985,"Ai Sensy":3538,"Salaries":83666,"Rent":7500,"Electricity":2000,"Ads Online":30895,"Fpo":5000,"Offline Promotion":8206,"Weigh Mach":600,"Pics Fr Website":1700,"App":10000,"Otp Less":590},"totalExp":185188,"totalOrders":135,"avgOrdersPerDay":4.35,"avgOrderValue":323,"totalSales":40662},"NOV24":{"categories":{"Raw Material":0,"Vegetables":4643,"Water":2100,"Gas":613,"Packing Material":2878,"Snacks":3405,"Others":10136,"Ai Sensy":7040,"Salaries":74233,"Rent":7500,"Electricity":4661,"Ads Online":77438,"Offline Promotion":0,"Choppr":2274,"Heyo":240,"App":7500,"Otp Less":6000},"totalExp":210661,"totalOrders":252,"avgOrdersPerDay":8.4,"avgOrderValue":348,"totalSales":82824},"dec24":{"categories":{"Raw Material":26974,"Vegetables":4400,"Water":1400,"Gas":0,"Packing Material":1510,"Snacks":2020,"Others":2426,"Ai Sensy":5897,"Salaries":86167,"Rent":7500,"Electricity":5500,"Ads Online":51161,"Adshoot":20000,"Photographer":10000,"Choppr":2780,"Heyo":250,"App":20000},"totalExp":247985,"totalOrders":211,"avgOrdersPerDay":6.8,"avgOrderValue":329,"totalSales":65784},"jan25":{"categories":{"Raw Material":8849,"Vegetables":1695,"Water":700,"Gas":612,"Packing Material":860,"Snacks":2008,"Others":3640,"Ai Sensy":5877,"Salaries":45906,"Rent":7500,"Electricity":4943,"Ads Online":23915,"Reel Makers":1000,"Internet":500,"Heyo":250,"App":0},"totalExp":108255,"totalOrders":144,"avgOrdersPerDay":4.6,"avgOrderValue":318,"totalSales":42992},"feb25":{"categories":{"Raw Material":10429,"Vegetables":1520,"Water":350,"Gas":612,"Packing Material":1600,"Snacks":1590,"Others":2266,"Ai Sensy":5860,"Salaries":41600,"Rent":7500,"Electricity":3973,"Ads Online":19915,"Reel Makers":7074,"Internet":942,"Heyo":238,"App":0},"totalExp":105469,"totalOrders":134,"avgOrdersPerDay":4.7,"avgOrderValue":330,"totalSales":41929},"MARCH25":{"categories":{"Raw Material":11832,"Vegetables":1640,"Water":700,"Gas":0,"Packing Material":420,"Snacks":2220,"Others":4145,"Ai Sensy":9437,"Salaries":44036,"Rent":7500,"Electricity":2065,"Ads Online":20449,"Reel Makers":4364,"Internet":948,"Off Line Campaigns":2000,"Heyo":230,"App":0},"totalExp":111986,"totalOrders":150,"avgOrdersPerDay":4.8,"avgOrderValue":295,"totalSales":41929},"april 25":{"categories":{"Raw Material":8811,"Vegetables":1500,"Water":700,"Gas":647,"Packing Material":950,"Snacks":990,"Others":400,"French Fries/Parota":725,"Ai Sensy":2360,"Salaries":40755,"Rent":7500,"Electricity":3038,"Ads Online":19500,"Reel Makers":2090,"Internet":948,"Off Line Campaigns":4000,"Heyo":230,"App":433},"totalExp":95577,"totalOrders":134,"avgOrdersPerDay":4.4,"avgOrderValue":322,"totalSales":41396},"may25":{"categories":{"Raw Material":13979,"Vegetables":735,"Water":700,"Gas":0,"Packing Material":590,"Snacks":900,"Others":5747,"French Fries/Parota":1800,"Ai Sensy":3600,"Salaries":29950,"Rent":7500,"Electricity":2951,"Ads Online":17500,"Reel Makers":1000,"Internet":942,"Off Line Campaigns":0,"Heyo":0,"App":0},"totalExp":87894,"totalOrders":132,"avgOrdersPerDay":4.25,"avgOrderValue":320,"totalSales":41380},"june 25":{"categories":{"Raw Material":10925,"Vegetables":2280,"Water":1050,"Gas":0,"Packing Material":690,"Snacks":2485,"Others":703,"French Fries/Parota":1890,"Ai Sensy":4737,"Salaries":41958,"Rent":7500,"Electricity":2409,"Ads Online":26500,"Reel Makers":0,"Internet":942,"Off Line Campaigns":0,"Heyo":637,"App":0},"totalExp":104706,"totalOrders":144,"avgOrdersPerDay":4.8,"avgOrderValue":360,"totalSales":50147}," july 25":{"categories":{"Raw Material":13608,"Vegetables":1580,"Water":1050,"Gas":647,"Packing Material":610,"Snacks":2760,"Others":7748,"French Fries/Parota":1060,"Ai Sensy":0,"Salaries":44100,"Rent":7500,"Electricity":3561,"Ads Online":46894,"Reel Makers":0,"Internet":943,"Off Line Campaigns":0,"Heyo":107,"App":0},"totalExp":132168,"totalOrders":194,"avgOrdersPerDay":6.25,"avgOrderValue":328,"totalSales":61851},"aug25":{"categories":{"Raw Material":15917,"Vegetables":3620,"Water":700,"Gas":0,"Packing Material":650,"Snacks":800,"Others":12220,"French Fries/Parota":860,"Ai Sensy":5310,"Salaries":44100,"Rent":7500,"Electricity":3814,"Ads Online":44300,"Reel Makers":0,"Internet":940,"Off Line Campaigns":0,"Heyo/Bsnl":107,"App":0},"totalExp":140838,"totalOrders":176,"avgOrdersPerDay":5.66,"avgOrderValue":360,"totalSales":61188},"sep25":{"categories":{"Raw Material":13182,"Vegetables":2131,"Water":1050,"Gas":647,"Packing Material":460,"Snacks":0,"Others":3399,"French Fries/Parota":0,"Interakt":2950,"Salaries":31419,"Rent":7500,"Electricity":3851,"Ads Online":13600,"Reel Makers":0,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":461,"App":0},"totalExp":81593,"totalOrders":148,"avgOrdersPerDay":4.9,"avgOrderValue":348,"totalSales":49296},"oct25":{"categories":{"Raw Material":15261,"Vegetables":2360,"Water":1400,"Gas":652,"Packing Material":1830,"Snacks":0,"Others":5081,"French Fries/Parota":600,"Interakt":6488,"Salaries":40685,"Rent":7500,"Electricity":2929,"Ads Online":35200,"Reel Makers":2500,"Internet":942,"Off Line Campaigns":0,"Heyo/Bsnl":461,"App":14353},"totalExp":138242,"totalOrders":230,"avgOrdersPerDay":7.4,"avgOrderValue":366,"totalSales":80850},"nov25":{"categories":{"Raw Material":14970,"Vegetables":920,"Water":1050,"Gas":0,"Packing Material":740,"Snacks":0,"Others":10388,"French Fries/Parota":786,"Interakt":2124,"Salaries":41549,"Rent":7500,"Electricity":2684,"Ads Online":26000,"Reel Makers":0,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":461,"App":25000,"Website":2791},"totalExp":137906,"totalOrders":202,"avgOrdersPerDay":6.7,"avgOrderValue":352,"totalSales":69092},"dec25":{"categories":{"Raw Material":16190,"Uncategorized":4764,"Vegetables":1675,"Water":1400,"Gas":646,"Packing Material":1680,"Snacks":0,"Others":18820,"French Fries/Parota":340,"Interakt":9791,"Salaries":46566,"Rent":7500,"Electricity":3591,"Ads Online":39800,"Reel Makers":1215,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":568,"App":7000,"Website":0},"totalExp":162489,"totalOrders":261,"avgOrdersPerDay":8.4,"avgOrderValue":321,"totalSales":88940},"jan26":{"categories":{"Raw Material":19615,"Uncategorized":933,"Vegetables":829,"Water":2450,"Gas":647,"Packing Material":2430,"Snacks":0,"Others":12512,"New Purchase":0,"French Fries/Parota":280,"Interakt":5308,"Salaries":91452,"Rent":7500,"Electricity":5535,"Ads Online":49700,"Reel Makers":2460,"Internet":942,"Off Line Campaigns":0,"Heyo/Bsnl":847,"App":0,"Website":0},"totalExp":203440,"totalOrders":285,"avgOrdersPerDay":9.1,"avgOrderValue":314,"totalSales":95081},"feb26":{"categories":{"Raw Material":17331,"Uncategorized":4788,"Vegetables":2408,"Water":1050,"Gas":0,"Packing Material":2630,"Snacks":0,"Others":68156,"New Purchase":0,"French Fries/Parota":864,"Interakt":4130,"Salaries":106548,"Rent":7500,"Electricity":3959,"Ads Online":51750,"Reel Makers":0,"Internet":942,"Off Line Campaigns":3000,"Heyo/Bsnl":700,"App":10000,"Website":0},"totalExp":285756,"totalOrders":289,"avgOrdersPerDay":10.32,"avgOrderValue":304,"totalSales":96382},"march26":{"categories":{"Raw Material":14748,"Uncategorized":20685,"Vegetables":2257,"Water":1750,"Gas":646,"Packing Material":18446,"Snacks":0,"Others":34979,"New Purchase":0,"French Fries/Parota":2147,"Interakt":8257,"Salaries":174286,"Rent":7500,"Electricity":4983,"Ads Online":57600,"Reel Makers":3165,"Internet":942,"Off Line Campaigns":10000,"Heyo/Bsnl":700,"App":0,"Website":3892},"totalExp":366983,"totalOrders":497,"avgOrdersPerDay":16,"avgOrderValue":325,"totalSales":167993},"APRIL26":{"categories":{"Raw Material":22815,"Uncategorized":17346,"Vegetables":480,"Water":3150,"Gas":689,"Packing Material":2885,"Snacks":0,"Others":46098,"New Purchase":0,"French Fries/Parota":1610,"Interakt":8835,"Salaries":193474,"Rent":7500,"Electricity":6418,"Ads Online":133800,"Reel Makers":1000,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":700,"App":0,"Website":0},"totalExp":447743,"totalOrders":471,"avgOrdersPerDay":15.7,"avgOrderValue":315,"totalSales":148603},"may26":{"categories":{"Raw Material":17143,"Uncategorized":25186,"Vegetables":2281,"Water":6300,"Gas":0,"Packing Material":6240,"Snacks":0,"Others":24863,"New Purchase":0,"French Fries/Parota":1010,"Interakt":7521,"Salaries":210410,"Rent":7500,"Electricity":5615,"Ads Online":87990,"Reel Makers":4000,"Internet":942,"Off Line Campaigns":0,"Heyo/Bsnl":696,"App":0,"Website":0},"totalExp":407697,"totalOrders":614,"avgOrdersPerDay":19.8,"avgOrderValue":302,"totalSales":185448}};
+const DEFAULT_DATA = {"sep":{"categories":{"Raw Material":38350,"Vegetables":0,"Water":350,"Gas":610,"Packing Material":0,"Stock Balance":0,"Ai Sensy":7074,"Salaries":89688,"Rent":7500,"Electricity":2000,"Ads Online":3000,"Offline Promotion":32800,"Invideo":4200,"Domain":5000},"totalExp":190572,"totalOrders":0,"avgOrdersPerDay":0,"avgOrderValue":0,"totalSales":9671},"OCT24":{"categories":{"Raw Material":12842,"Vegetables":3445,"Water":1050,"Gas":612,"Packing Material":690,"Snacks":1869,"Others":10985,"Ai Sensy":3538,"Salaries":83666,"Rent":7500,"Electricity":2000,"Ads Online":30895,"Fpo":5000,"Offline Promotion":8206,"Weigh Mach":600,"Pics Fr Website":1700,"App":10000,"Otp Less":590},"totalExp":185188,"totalOrders":135,"avgOrdersPerDay":4.35,"avgOrderValue":323,"totalSales":40662},"NOV24":{"categories":{"Raw Material":0,"Vegetables":4643,"Water":2100,"Gas":613,"Packing Material":2878,"Snacks":3405,"Others":10136,"Ai Sensy":7040,"Salaries":74233,"Rent":7500,"Electricity":4661,"Ads Online":77438,"Offline Promotion":0,"Choppr":2274,"Heyo":240,"App":7500,"Otp Less":6000},"totalExp":210661,"totalOrders":252,"avgOrdersPerDay":8.4,"avgOrderValue":348,"totalSales":82824},"dec24":{"categories":{"Raw Material":26974,"Vegetables":4400,"Water":1400,"Gas":0,"Packing Material":1510,"Snacks":2020,"Others":2426,"Ai Sensy":5897,"Salaries":86167,"Rent":7500,"Electricity":5500,"Ads Online":51161,"Adshoot":20000,"Photographer":10000,"Choppr":2780,"Heyo":250,"App":20000},"totalExp":247985,"totalOrders":211,"avgOrdersPerDay":6.8,"avgOrderValue":329,"totalSales":65784},"jan25":{"categories":{"Raw Material":8849,"Vegetables":1695,"Water":700,"Gas":612,"Packing Material":860,"Snacks":2008,"Others":3640,"Ai Sensy":5877,"Salaries":45906,"Rent":7500,"Electricity":4943,"Ads Online":23915,"Reel Makers":1000,"Internet":500,"Heyo":250,"App":0},"totalExp":108255,"totalOrders":144,"avgOrdersPerDay":4.6,"avgOrderValue":318,"totalSales":42992},"feb25":{"categories":{"Raw Material":10429,"Vegetables":1520,"Water":350,"Gas":612,"Packing Material":1600,"Snacks":1590,"Others":2266,"Ai Sensy":5860,"Salaries":41600,"Rent":7500,"Electricity":3973,"Ads Online":19915,"Reel Makers":7074,"Internet":942,"Heyo":238,"App":0},"totalExp":105469,"totalOrders":134,"avgOrdersPerDay":4.7,"avgOrderValue":330,"totalSales":41929},"MARCH25":{"categories":{"Raw Material":11832,"Vegetables":1640,"Water":700,"Gas":0,"Packing Material":420,"Snacks":2220,"Others":4145,"Ai Sensy":9437,"Salaries":44036,"Rent":7500,"Electricity":2065,"Ads Online":20449,"Reel Makers":4364,"Internet":948,"Off Line Campaigns":2000,"Heyo":230,"App":0},"totalExp":111986,"totalOrders":150,"avgOrdersPerDay":4.8,"avgOrderValue":295,"totalSales":41929},"april 25":{"categories":{"Raw Material":8811,"Vegetables":1500,"Water":700,"Gas":647,"Packing Material":950,"Snacks":990,"Others":400,"French Fries/Parota":725,"Ai Sensy":2360,"Salaries":40755,"Rent":7500,"Electricity":3038,"Ads Online":19500,"Reel Makers":2090,"Internet":948,"Off Line Campaigns":4000,"Heyo":230,"App":433},"totalExp":95577,"totalOrders":134,"avgOrdersPerDay":4.4,"avgOrderValue":322,"totalSales":41396,"salaryBreakdown":[{"name":"KRANTHI","workingDays":31,"daysAttended":31,"salaryPaid":20000},{"name":"SWATHI","workingDays":31,"daysAttended":31,"salaryPaid":20000},{"name":"deepika","workingDays":31,"daysAttended":25.5,"salaryPaid":8225.81},{"name":"mahesh","workingDays":31,"daysAttended":28,"salaryPaid":14451.61},{"name":"SHIVANI","workingDays":31,"daysAttended":18,"salaryPaid":4064.52},{"name":"suresh","workingDays":31,"daysAttended":31,"salaryPaid":10000},{"name":"jamuna","workingDays":31,"daysAttended":28,"salaryPaid":3612.9}]},"may25":{"categories":{"Raw Material":13979,"Vegetables":735,"Water":700,"Gas":0,"Packing Material":590,"Snacks":900,"Others":5747,"French Fries/Parota":1800,"Ai Sensy":3600,"Salaries":29950,"Rent":7500,"Electricity":2951,"Ads Online":17500,"Reel Makers":1000,"Internet":942,"Off Line Campaigns":0,"Heyo":0,"App":0},"totalExp":87894,"totalOrders":132,"avgOrdersPerDay":4.25,"avgOrderValue":320,"totalSales":41380,"salaryBreakdown":[{"name":"KRANTHI","workingDays":30,"daysAttended":31,"salaryPaid":20666.67},{"name":"SWATHI","workingDays":30,"daysAttended":31,"salaryPaid":20666.67},{"name":"deepika","workingDays":30,"daysAttended":30,"salaryPaid":8000.0},{"name":"mahesh","workingDays":30,"daysAttended":7,"salaryPaid":3733.33},{"name":"SHIVANI","workingDays":30,"daysAttended":25.5,"salaryPaid":5950},{"name":"suresh","workingDays":30,"daysAttended":30,"salaryPaid":10000},{"name":"jamuna","workingDays":30,"daysAttended":null,"salaryPaid":0}]},"june 25":{"categories":{"Raw Material":10925,"Vegetables":2280,"Water":1050,"Gas":0,"Packing Material":690,"Snacks":2485,"Others":703,"French Fries/Parota":1890,"Ai Sensy":4737,"Salaries":41958,"Rent":7500,"Electricity":2409,"Ads Online":26500,"Reel Makers":0,"Internet":942,"Off Line Campaigns":0,"Heyo":637,"App":0},"totalExp":104706,"totalOrders":144,"avgOrdersPerDay":4.8,"avgOrderValue":360,"totalSales":50147,"salaryBreakdown":[{"name":"KRANTHI","workingDays":31,"daysAttended":31,"salaryPaid":20000},{"name":"SWATHI","workingDays":31,"daysAttended":31,"salaryPaid":20000},{"name":"deepika","workingDays":31,"daysAttended":30,"salaryPaid":7741.94},{"name":"vardhan","workingDays":31,"daysAttended":19,"salaryPaid":9806.45},{"name":"SHIVANI","workingDays":31,"daysAttended":29,"salaryPaid":6548.39},{"name":"suresh","workingDays":31,"daysAttended":31,"salaryPaid":10000},{"name":"jamuna","workingDays":31,"daysAttended":31,"salaryPaid":4000}]}," july 25":{"categories":{"Raw Material":13608,"Vegetables":1580,"Water":1050,"Gas":647,"Packing Material":610,"Snacks":2760,"Others":7748,"French Fries/Parota":1060,"Ai Sensy":0,"Salaries":44100,"Rent":7500,"Electricity":3561,"Ads Online":46894,"Reel Makers":0,"Internet":943,"Off Line Campaigns":0,"Heyo":107,"App":0},"totalExp":132168,"totalOrders":194,"avgOrdersPerDay":6.25,"avgOrderValue":328,"totalSales":61851,"salaryBreakdown":[{"name":"KRANTHI","workingDays":30,"daysAttended":30,"salaryPaid":20000},{"name":"SWATHI","workingDays":30,"daysAttended":30,"salaryPaid":20000},{"name":"deepika","workingDays":30,"daysAttended":28.5,"salaryPaid":7600.0},{"name":"vardhan","workingDays":30,"daysAttended":28,"salaryPaid":14933.33},{"name":"SHIVANI","workingDays":30,"daysAttended":27,"salaryPaid":6300},{"name":"suresh","workingDays":30,"daysAttended":30,"salaryPaid":10000},{"name":"jamuna","workingDays":30,"daysAttended":30,"salaryPaid":4000.0},{"name":"ARUN","workingDays":1,"daysAttended":null,"salaryPaid":0}]},"aug25":{"categories":{"Raw Material":15917,"Vegetables":3620,"Water":700,"Gas":0,"Packing Material":650,"Snacks":800,"Others":12220,"French Fries/Parota":860,"Ai Sensy":5310,"Salaries":44100,"Rent":7500,"Electricity":3814,"Ads Online":44300,"Reel Makers":0,"Internet":940,"Off Line Campaigns":0,"Heyo/Bsnl":107,"App":0},"totalExp":140838,"totalOrders":176,"avgOrdersPerDay":5.66,"avgOrderValue":360,"totalSales":61188,"salaryBreakdown":[{"name":"KRANTHI","workingDays":31,"daysAttended":30,"salaryPaid":19354.84},{"name":"SWATHI","workingDays":31,"daysAttended":30,"salaryPaid":19354.84},{"name":"deepika","workingDays":31,"daysAttended":30.5,"salaryPaid":7870.97},{"name":"vardhan","workingDays":31,"daysAttended":28,"salaryPaid":14451.61},{"name":"SHIVANI","workingDays":31,"daysAttended":11,"salaryPaid":2483.87},{"name":"suresh","workingDays":31,"daysAttended":31,"salaryPaid":10000},{"name":"jamuna","workingDays":31,"daysAttended":31,"salaryPaid":4000},{"name":"BHULAKSHMI","workingDays":31,"daysAttended":14,"salaryPaid":3612.9}]},"sep25":{"categories":{"Raw Material":13182,"Vegetables":2131,"Water":1050,"Gas":647,"Packing Material":460,"Snacks":0,"Others":3399,"French Fries/Parota":0,"Interakt":2950,"Salaries":31419,"Rent":7500,"Electricity":3851,"Ads Online":13600,"Reel Makers":0,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":461,"App":0},"totalExp":81593,"totalOrders":148,"avgOrdersPerDay":4.9,"avgOrderValue":348,"totalSales":49296,"salaryBreakdown":[{"name":"kranthi","workingDays":31,"daysAttended":30,"salaryPaid":19354.84},{"name":"swathi","workingDays":31,"daysAttended":30,"salaryPaid":19354.84},{"name":"deepika","workingDays":31,"daysAttended":30,"salaryPaid":7741.94},{"name":"VARDHAN","workingDays":31,"daysAttended":9,"salaryPaid":4645.16},{"name":"jamuna","workingDays":31,"daysAttended":31,"salaryPaid":4000},{"name":"bhulakshmi","workingDays":31,"daysAttended":30,"salaryPaid":7741.94},{"name":"SURESH","workingDays":31,"daysAttended":31,"salaryPaid":12000}]},"oct25":{"categories":{"Raw Material":15261,"Vegetables":2360,"Water":1400,"Gas":652,"Packing Material":1830,"Snacks":0,"Others":5081,"French Fries/Parota":600,"Interakt":6488,"Salaries":40685,"Rent":7500,"Electricity":2929,"Ads Online":35200,"Reel Makers":2500,"Internet":942,"Off Line Campaigns":0,"Heyo/Bsnl":461,"App":14353},"totalExp":138242,"totalOrders":230,"avgOrdersPerDay":7.4,"avgOrderValue":366,"totalSales":80850,"salaryBreakdown":[{"name":"kranthi","workingDays":30,"daysAttended":30,"salaryPaid":20000},{"name":"swathi","workingDays":30,"daysAttended":30,"salaryPaid":20000},{"name":"deepika","workingDays":30,"daysAttended":28,"salaryPaid":9333.33},{"name":"MAHADEVI","workingDays":30,"daysAttended":7,"salaryPaid":1866.67},{"name":"BHULAKSHMI","workingDays":30,"daysAttended":29,"salaryPaid":7733.33},{"name":"suresh","workingDays":30,"daysAttended":30,"salaryPaid":12000},{"name":"jamuna","workingDays":30,"daysAttended":30,"salaryPaid":4000.0}]},"nov25":{"categories":{"Raw Material":14970,"Vegetables":920,"Water":1050,"Gas":0,"Packing Material":740,"Snacks":0,"Others":10388,"French Fries/Parota":786,"Interakt":2124,"Salaries":41549,"Rent":7500,"Electricity":2684,"Ads Online":26000,"Reel Makers":0,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":461,"App":25000,"Website":2791},"totalExp":137906,"totalOrders":202,"avgOrdersPerDay":6.7,"avgOrderValue":352,"totalSales":69092,"salaryBreakdown":[{"name":"kranthi","workingDays":31,"daysAttended":31,"salaryPaid":20000},{"name":"swathi","workingDays":31,"daysAttended":31,"salaryPaid":20000},{"name":"deepika","workingDays":31,"daysAttended":13,"salaryPaid":4193.55},{"name":"MAHADEVI","workingDays":31,"daysAttended":29,"salaryPaid":7483.87},{"name":"BHULAKSHMI","workingDays":31,"daysAttended":27.5,"salaryPaid":7096.77},{"name":"DHARMPAL","workingDays":31,"daysAttended":21,"salaryPaid":6774.19},{"name":"suresh","workingDays":31,"daysAttended":31,"salaryPaid":12000},{"name":"jamuna","workingDays":31,"daysAttended":31,"salaryPaid":4000}]},"dec25":{"categories":{"Raw Material":16190,"Uncategorized":4764,"Vegetables":1675,"Water":1400,"Gas":646,"Packing Material":1680,"Snacks":0,"Others":18820,"French Fries/Parota":340,"Interakt":9791,"Salaries":46566,"Rent":7500,"Electricity":3591,"Ads Online":39800,"Reel Makers":1215,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":568,"App":7000,"Website":0},"totalExp":162489,"totalOrders":261,"avgOrdersPerDay":8.4,"avgOrderValue":321,"totalSales":88940,"salaryBreakdown":[{"name":"kranthi","workingDays":30,"daysAttended":30,"salaryPaid":20000},{"name":"swathi","workingDays":30,"daysAttended":30,"salaryPaid":20000},{"name":"deepika","workingDays":30,"daysAttended":20.5,"salaryPaid":6833.33},{"name":"MAHADEVI","workingDays":30,"daysAttended":6,"salaryPaid":1600},{"name":"DHARMPAL","workingDays":30,"daysAttended":25,"salaryPaid":8333.33},{"name":"jamuna","workingDays":30,"daysAttended":30,"salaryPaid":4000.0},{"name":"bhulakshmi","workingDays":30,"daysAttended":26.5,"salaryPaid":7066.67},{"name":"MANI","workingDays":30,"daysAttended":13,"salaryPaid":3466.67},{"name":"SURESH","workingDays":30,"daysAttended":30,"salaryPaid":15000}],"uncategorizedDaily":[{"day":1,"amount":168},{"day":2,"amount":1960},{"day":3,"amount":304},{"day":4,"amount":845},{"day":5,"amount":1487}]},"jan26":{"categories":{"Raw Material":19615,"Uncategorized":933,"Vegetables":829,"Water":2450,"Gas":647,"Packing Material":2430,"Snacks":0,"Others":12512,"New Purchase":0,"French Fries/Parota":280,"Interakt":5308,"Salaries":91452,"Rent":7500,"Electricity":5535,"Ads Online":49700,"Reel Makers":2460,"Internet":942,"Off Line Campaigns":0,"Heyo/Bsnl":847,"App":0,"Website":0},"totalExp":203440,"totalOrders":285,"avgOrdersPerDay":9.1,"avgOrderValue":314,"totalSales":95081,"salaryBreakdown":[{"name":"kranthi","workingDays":31,"daysAttended":31,"salaryPaid":20000},{"name":"swathi","workingDays":31,"daysAttended":31,"salaryPaid":20000},{"name":"Bhulakshmi","workingDays":31,"daysAttended":29,"salaryPaid":7483.87},{"name":"MANI","workingDays":31,"daysAttended":30,"salaryPaid":7741.94},{"name":"hema","workingDays":31,"daysAttended":22,"salaryPaid":5677.42},{"name":"dharmpal","workingDays":31,"daysAttended":19,"salaryPaid":6129.03},{"name":"RAJESH","workingDays":31,"daysAttended":17,"salaryPaid":5483.87},{"name":"JAMUNA","workingDays":31,"daysAttended":29.5,"salaryPaid":3806.45},{"name":"SURESH","workingDays":31,"daysAttended":31,"salaryPaid":15000}],"uncategorizedDaily":[{"day":1,"amount":310},{"day":2,"amount":623}]},"feb26":{"categories":{"Raw Material":17331,"Uncategorized":4788,"Vegetables":2408,"Water":1050,"Gas":0,"Packing Material":2630,"Snacks":0,"Others":68156,"New Purchase":0,"French Fries/Parota":864,"Interakt":4130,"Salaries":106548,"Rent":7500,"Electricity":3959,"Ads Online":51750,"Reel Makers":0,"Internet":942,"Off Line Campaigns":3000,"Heyo/Bsnl":700,"App":10000,"Website":0},"totalExp":285756,"totalOrders":289,"avgOrdersPerDay":10.32,"avgOrderValue":304,"totalSales":96382,"salaryBreakdown":[{"name":"kranthi","workingDays":31,"daysAttended":31,"salaryPaid":20000},{"name":"swathi","workingDays":31,"daysAttended":31,"salaryPaid":20000},{"name":"Bhulakshmi","workingDays":31,"daysAttended":31,"salaryPaid":8000},{"name":"MANI","workingDays":31,"daysAttended":31,"salaryPaid":8000},{"name":"hema","workingDays":31,"daysAttended":18,"salaryPaid":4645.16},{"name":"dharmpal","workingDays":31,"daysAttended":28,"salaryPaid":9032.26},{"name":"WAJU","workingDays":31,"daysAttended":29,"salaryPaid":9354.84},{"name":"HAJI","workingDays":31,"daysAttended":27,"salaryPaid":8709.68},{"name":"JAMUNA","workingDays":31,"daysAttended":29.5,"salaryPaid":3806.45},{"name":"SURESH","workingDays":31,"daysAttended":31,"salaryPaid":15000},{"name":"ARUN","workingDays":1,"daysAttended":null,"salaryPaid":0}],"uncategorizedDaily":[{"day":1,"amount":400},{"day":2,"amount":150},{"day":3,"amount":1678},{"day":4,"amount":2560}]},"march26":{"categories":{"Raw Material":14748,"Uncategorized":20685,"Vegetables":2257,"Water":1750,"Gas":646,"Packing Material":18446,"Snacks":0,"Others":34979,"New Purchase":0,"French Fries/Parota":2147,"Interakt":8257,"Salaries":174286,"Rent":7500,"Electricity":4983,"Ads Online":57600,"Reel Makers":3165,"Internet":942,"Off Line Campaigns":10000,"Heyo/Bsnl":700,"App":0,"Website":3892},"totalExp":366983,"totalOrders":497,"avgOrdersPerDay":16,"avgOrderValue":325,"totalSales":167993,"salaryBreakdown":[{"name":"kranthi","workingDays":28,"daysAttended":28,"salaryPaid":30000.0},{"name":"swathi","workingDays":28,"daysAttended":28,"salaryPaid":30000.0},{"name":"KARTHIK","workingDays":28,"daysAttended":28,"salaryPaid":40000},{"name":"Bhulakshmi","workingDays":28,"daysAttended":27.5,"salaryPaid":7857.14},{"name":"MANI","workingDays":28,"daysAttended":28,"salaryPaid":8000},{"name":"VENKATESH","workingDays":28,"daysAttended":6,"salaryPaid":3428.57},{"name":"dharmpal","workingDays":28,"daysAttended":27,"salaryPaid":9642.86},{"name":"DILEEP","workingDays":28,"daysAttended":18,"salaryPaid":6428.57},{"name":"WAJU","workingDays":28,"daysAttended":28,"salaryPaid":10000},{"name":"HAJI","workingDays":28,"daysAttended":28,"salaryPaid":10000},{"name":"JAMUNA","workingDays":28,"daysAttended":27.5,"salaryPaid":3928.57},{"name":"SURESH","workingDays":28,"daysAttended":28,"salaryPaid":15000.0}],"uncategorizedDaily":[{"day":1,"amount":2345},{"day":2,"amount":1414},{"day":3,"amount":1000},{"day":4,"amount":1200},{"day":5,"amount":200},{"day":6,"amount":2390},{"day":7,"amount":420},{"day":8,"amount":440},{"day":9,"amount":500},{"day":10,"amount":1875},{"day":11,"amount":420},{"day":12,"amount":784},{"day":13,"amount":100},{"day":14,"amount":200},{"day":15,"amount":2329},{"day":16,"amount":325},{"day":17,"amount":602},{"day":18,"amount":1350},{"day":19,"amount":110},{"day":20,"amount":2681}]},"APRIL26":{"categories":{"Raw Material":22815,"Uncategorized":17346,"Vegetables":480,"Water":3150,"Gas":689,"Packing Material":2885,"Snacks":0,"Others":46098,"New Purchase":0,"French Fries/Parota":1610,"Interakt":8835,"Salaries":193474,"Rent":7500,"Electricity":6418,"Ads Online":133800,"Reel Makers":1000,"Internet":943,"Off Line Campaigns":0,"Heyo/Bsnl":700,"App":0,"Website":0},"totalExp":447743,"totalOrders":471,"avgOrdersPerDay":15.7,"avgOrderValue":315,"totalSales":148603,"salaryBreakdown":[{"name":"kranthi","workingDays":31,"daysAttended":31,"salaryPaid":30000},{"name":"swathi","workingDays":31,"daysAttended":31,"salaryPaid":30000},{"name":"KARTHIK","workingDays":31,"daysAttended":31,"salaryPaid":40000},{"name":"Bhulakshmi","workingDays":31,"daysAttended":13,"salaryPaid":3354.84},{"name":"MANI","workingDays":31,"daysAttended":21,"salaryPaid":5419.35},{"name":"VENKATESH","workingDays":31,"daysAttended":25,"salaryPaid":12903.23},{"name":"dharmpal","workingDays":31,"daysAttended":26,"salaryPaid":8387.1},{"name":"DILEEP","workingDays":31,"daysAttended":28,"salaryPaid":9032.26},{"name":"WAJU","workingDays":31,"daysAttended":31,"salaryPaid":10000},{"name":"HAJI","workingDays":31,"daysAttended":31,"salaryPaid":10000},{"name":"swapna","workingDays":31,"daysAttended":29,"salaryPaid":12441.94},{"name":"anitha","workingDays":31,"daysAttended":8,"salaryPaid":2580.65},{"name":"JAMUNA","workingDays":31,"daysAttended":30,"salaryPaid":4354.84},{"name":"SURESH","workingDays":31,"daysAttended":31,"salaryPaid":15000}],"uncategorizedDaily":[{"day":1,"amount":2614},{"day":2,"amount":180},{"day":3,"amount":227},{"day":4,"amount":1350},{"day":5,"amount":253},{"day":6,"amount":489},{"day":7,"amount":59},{"day":8,"amount":198},{"day":9,"amount":1862},{"day":10,"amount":200},{"day":11,"amount":1600},{"day":12,"amount":468},{"day":13,"amount":135},{"day":14,"amount":1476},{"day":15,"amount":368},{"day":16,"amount":200},{"day":17,"amount":1872},{"day":18,"amount":1865},{"day":19,"amount":250},{"day":20,"amount":1680}]},"may26":{"categories":{"Raw Material":17143,"Uncategorized":25186,"Vegetables":2281,"Water":6300,"Gas":0,"Packing Material":6240,"Snacks":0,"Others":24863,"New Purchase":0,"French Fries/Parota":1010,"Interakt":7521,"Salaries":210410,"Rent":7500,"Electricity":5615,"Ads Online":87990,"Reel Makers":4000,"Internet":942,"Off Line Campaigns":0,"Heyo/Bsnl":696,"App":0,"Website":0},"totalExp":407697,"totalOrders":614,"avgOrdersPerDay":19.8,"avgOrderValue":302,"totalSales":185448,"salaryBreakdown":[{"name":"kranthi","workingDays":30,"daysAttended":30,"salaryPaid":30000},{"name":"swathi","workingDays":30,"daysAttended":30,"salaryPaid":30000},{"name":"KARTHIK","workingDays":30,"daysAttended":30,"salaryPaid":40000},{"name":"swapna","workingDays":30,"daysAttended":31,"salaryPaid":13743.33},{"name":"jyothi","workingDays":30,"daysAttended":19,"salaryPaid":6333.33},{"name":"uma","workingDays":30,"daysAttended":15,"salaryPaid":6000},{"name":"anitha","workingDays":30,"daysAttended":19.5,"salaryPaid":6500},{"name":"VENKATESH","workingDays":30,"daysAttended":30,"salaryPaid":16000.0},{"name":"dharmpal","workingDays":30,"daysAttended":30,"salaryPaid":10000},{"name":"DILEEP","workingDays":30,"daysAttended":14,"salaryPaid":4666.67},{"name":"WAJU","workingDays":30,"daysAttended":29,"salaryPaid":9666.67},{"name":"HAJI","workingDays":30,"daysAttended":29,"salaryPaid":9666.67},{"name":"JAMUNA","workingDays":30,"daysAttended":30,"salaryPaid":4500},{"name":"SURESH","workingDays":30,"daysAttended":30,"salaryPaid":15000},{"name":"sreenivaslu (intern)","workingDays":30,"daysAttended":20,"salaryPaid":3333.33},{"name":"prashanth","workingDays":30,"daysAttended":15,"salaryPaid":5000}],"uncategorizedDaily":[{"day":1,"amount":1350},{"day":2,"amount":1000},{"day":3,"amount":400},{"day":4,"amount":1000},{"day":5,"amount":895},{"day":6,"amount":400},{"day":7,"amount":2426},{"day":8,"amount":1500},{"day":9,"amount":1350},{"day":10,"amount":1060},{"day":11,"amount":1500},{"day":12,"amount":420},{"day":13,"amount":1430},{"day":14,"amount":36},{"day":15,"amount":356},{"day":16,"amount":440},{"day":17,"amount":1430},{"day":18,"amount":2676},{"day":19,"amount":205},{"day":20,"amount":1500},{"day":21,"amount":1420},{"day":22,"amount":1970},{"day":23,"amount":322},{"day":24,"amount":100}]}};
 
 /* ---------- Excel parser (mirrors the CLAUDE.md-documented layout) ---------- */
 const SPECIAL_TOTALCOL = ['total exp','total packed material','wastage','personal & eb','online sales','coupons','off line sales','total sales'];
@@ -423,6 +439,7 @@ function parseSheet(ws) {
 
   const categories = {};
   const specials = {};
+  const uncategorizedDailyMap = {};
   let seenTotalExp = false;
   let r = expRow + 1;
   while (r <= maxRow) {
@@ -433,7 +450,16 @@ function parseSheet(ws) {
     if (labelLower === '') {
       if (!seenTotalExp) {
         const val = toNumber(cellValue(ws, r, totalCol));
-        if (val !== 0) categories['Uncategorized'] = (categories['Uncategorized'] || 0) + val;
+        if (val !== 0) {
+          categories['Uncategorized'] = (categories['Uncategorized'] || 0) + val;
+          for (let c = 3; c < totalCol; c++) {
+            const dayVal = toNumber(cellValue(ws, r, c));
+            if (dayVal !== 0) {
+              const day = c - 2;
+              uncategorizedDailyMap[day] = (uncategorizedDailyMap[day] || 0) + dayVal;
+            }
+          }
+        }
       }
       r++;
       if (seenTotalExp && r > expRow + 40) break;
@@ -455,7 +481,11 @@ function parseSheet(ws) {
     if (seenTotalExp && labelLower === 'total sales') break;
   }
 
-  return {
+  const uncategorizedDaily = Object.keys(uncategorizedDailyMap)
+    .map(d => ({ day: parseInt(d, 10), amount: uncategorizedDailyMap[d] }))
+    .sort((a, b) => a.day - b.day);
+
+  const result = {
     categories,
     totalExp: specials['total exp'] || 0,
     totalOrders: specials['total orders'] || 0,
@@ -463,6 +493,62 @@ function parseSheet(ws) {
     avgOrderValue: specials['avg order value'] || 0,
     totalSales: specials['total sales'] || 0,
   };
+  if (uncategorizedDaily.length > 0) result.uncategorizedDaily = uncategorizedDaily;
+  return result;
+}
+
+/* ---------- Salary sheet parser ---------- */
+const SALARY_MONTH_MAP = {
+  'Salry sheet25-26': {
+    APRIL: 'april 25', MAY: 'may25', JUNE: 'june 25', JULY: ' july 25', AUG: 'aug25',
+    SEP: 'sep25', OCT: 'oct25', NOV: 'nov25', DEC: 'dec25', JAN: 'jan26', FEB: 'feb26', MARCH: 'march26'
+  },
+  'Salry sheet26-27': {
+    APRIL: 'APRIL26', MAY: 'may26'
+  }
+};
+
+function parseSalarySheet(ws) {
+  if (!ws['!ref']) return [];
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  const maxRow = range.e.r + 1;
+  const blocks = [];
+  let current = null;
+  for (let r = 1; r <= maxRow; r++) {
+    const marker = cellValue(ws, r, 9);
+    const name = cellValue(ws, r, 3);
+    const paid = cellValue(ws, r, 8);
+    const workingDays = cellValue(ws, r, 4);
+    const attended = cellValue(ws, r, 5);
+    if (typeof marker === 'string' && marker.trim() !== '' && marker.trim().toLowerCase() !== 'month') {
+      if (current) blocks.push(current);
+      current = { monthMarker: marker.trim().toUpperCase(), employees: [] };
+    }
+    if (current && name !== undefined && name !== null && String(name).trim() !== '') {
+      current.employees.push({
+        name: String(name).trim(),
+        workingDays: typeof workingDays === 'number' ? workingDays : null,
+        daysAttended: typeof attended === 'number' ? attended : null,
+        salaryPaid: Math.round(toNumber(paid) * 100) / 100,
+      });
+    }
+  }
+  if (current) blocks.push(current);
+  return blocks;
+}
+
+function parseSalarySheets(workbook) {
+  const result = {};
+  for (const [sheetName, monthMap] of Object.entries(SALARY_MONTH_MAP)) {
+    const ws = workbook.Sheets[sheetName];
+    if (!ws) continue;
+    const blocks = parseSalarySheet(ws);
+    for (const block of blocks) {
+      const key = monthMap[block.monthMarker];
+      if (key) result[key] = block.employees;
+    }
+  }
+  return result;
 }
 
 function parseWorkbook(workbook) {
@@ -474,6 +560,10 @@ function parseWorkbook(workbook) {
     const parsed = parseSheet(ws);
     if (!parsed) { skipped.push(key); continue; }
     data[key] = parsed;
+  }
+  const salaryByMonth = parseSalarySheets(workbook);
+  for (const [key, employees] of Object.entries(salaryByMonth)) {
+    if (data[key]) data[key].salaryBreakdown = employees;
   }
   return { data, skipped };
 }
@@ -617,6 +707,63 @@ function renderMonthView() {
         y: { grid: { color: gridColor() }, ticks: { color: mutedColor(), callback: v => fmtINR(v) } }
       }
     }
+  });
+
+  renderUncategorizedDaily(m.uncategorizedDaily);
+  renderSalaryBreakdown(m.salaryBreakdown);
+}
+
+function renderUncategorizedDaily(daily) {
+  const card = document.getElementById('uncatCard');
+  if (!daily || daily.length === 0) {
+    card.style.display = 'none';
+    destroyChart('chartUncatDaily');
+    return;
+  }
+  card.style.display = '';
+  destroyChart('chartUncatDaily');
+  charts.chartUncatDaily = new Chart(document.getElementById('chartUncatDaily'), {
+    type: 'bar',
+    data: {
+      labels: daily.map(d => `Day ${d.day}`),
+      datasets: [{
+        data: daily.map(d => d.amount),
+        backgroundColor: styleVar('--series-6'),
+        borderRadius: 3,
+        maxBarThickness: 22,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmtINR(ctx.parsed.y) } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: mutedColor() } },
+        y: { grid: { color: gridColor() }, ticks: { color: mutedColor(), callback: v => fmtINR(v) } }
+      }
+    }
+  });
+}
+
+function renderSalaryBreakdown(employees) {
+  const card = document.getElementById('salaryCard');
+  if (!employees || employees.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  const tbody = document.querySelector('#salaryTable tbody');
+  tbody.innerHTML = '';
+  const sorted = [...employees].sort((a, b) => b.salaryPaid - a.salaryPaid);
+  sorted.forEach(e => {
+    const attended = e.daysAttended !== null && e.daysAttended !== undefined
+      ? `${e.daysAttended}${e.workingDays ? ' / ' + e.workingDays : ''}`
+      : '–';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${e.name}</td><td class="num">${attended}</td><td class="num">${fmtINR(e.salaryPaid)}</td>`;
+    tbody.appendChild(tr);
   });
 }
 

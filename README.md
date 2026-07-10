@@ -23,7 +23,12 @@ will show the bundled default until you upload there too.
 
 1. **Month View** — pick a month, see expenditure by category, sales vs
    cost vs profit, and metric cards (orders, avg order value, avg
-   orders/day, margin).
+   orders/day, margin). Two extra cards appear only for months that have
+   the data: a day-by-day chart for any "Uncategorized" spend (an expense
+   row in the source sheet with a value but no label in column B), and a
+   per-employee staff salary breakdown (from the separate `Salry sheet*`
+   tabs in the workbook — shown purely as supplementary detail, since it
+   doesn't always reconcile with the "Salaries" expenditure category).
 2. **Compare Months** — trend lines (sales/cost/profit, each toggleable
    via the legend), side-by-side monthly bars, and profit margin % across
    all months.
