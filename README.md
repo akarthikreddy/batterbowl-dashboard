@@ -35,6 +35,35 @@ will show the bundled default until you upload there too.
 3. **Spending Breakdown** — pick a month range (or "All time"), see a
    donut of top categories + a full sortable table with % of total spend.
 
+## Login
+
+The dashboard is gated by a simple username/password screen (username
+`admin`), with an optional "Remember me" so you don't have to sign in every
+time. This is a client-side check only — there's no backend, and the repo
+is public, so it stops a casual visitor but isn't real security; the
+underlying data is still in the page source regardless.
+
+To change the password, edit `config.js` in this folder (gitignored —
+never committed) and reload:
+
+```js
+window.DASHBOARD_CONFIG = {
+  password: "your-new-password"
+};
+```
+
+The live GitHub Pages site never sees `config.js` (since it's gitignored),
+so it always falls back to a password hash baked into `index.html`
+(`FALLBACK_PASSWORD_HASH`). That hash is kept in sync with `config.js`
+**automatically** by a git pre-commit hook — every time you `git commit`,
+it recomputes the hash from whatever password is currently in `config.js`
+and updates `index.html` before the commit is made, so pushing always
+carries your latest local password forward to the live site too. No manual
+hash step needed.
+
+If the hook is ever missing (e.g. a fresh clone of the repo on a new
+machine), reinstall it once with `./scripts/install-hooks.sh`.
+
 ## Source spreadsheet format
 
 Each sheet in the `.xlsx` = one month. The parser expects:

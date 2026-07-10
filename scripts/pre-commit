@@ -1,0 +1,8 @@
+#!/bin/bash
+# Keeps index.html's fallback password hash in sync with config.js before
+# every commit. Installed into .git/hooks/pre-commit by install-hooks.sh
+# (git doesn't track .git/hooks, so this copy is what makes it reproducible).
+set -euo pipefail
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+"$REPO_ROOT/scripts/sync-password.sh"
+git add "$REPO_ROOT/index.html"
