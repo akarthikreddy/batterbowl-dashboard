@@ -44,17 +44,17 @@ default dataset** (baked into a `const DEFAULT_DATA = {...}` JSON blob in
 the JS) so it shows real data even before anyone uploads anything.
 
 ## Source spreadsheet structure (important — this is what the parser assumes)
-Each sheet = one month. Sheet names follow this exact chronological list
-(hardcoded as `MONTH_ORDER` in the JS, used both for sort order and display
-labels):
-```
-sep, OCT24, NOV24, dec24, jan25, feb25, MARCH25, "april 25", may25,
-"june 25", " july 25", aug25, sep25, oct25, nov25, dec25, jan26, feb26,
-march26, APRIL26, may26
-```
-(Note some have inconsistent casing/spacing in the original file — the
-parser normalizes with `.trim().toLowerCase()` when matching labels, but
-sheet *names* are matched literally against `MONTH_ORDER`.)
+Each sheet = one month. Month sheets are **recognized by parsing their name**
+(`monthInfo()` in the JS), not by matching a hardcoded list — so a brand-new
+month tab (e.g. `jun26`, `july26`, `OCT27`) shows up automatically on upload
+with no code changes. `monthInfo()` extracts a month word (full or
+abbreviated: `jun`/`june`, `sep`/`sept`/`september`, etc.) plus a 2- or
+4-digit year, and derives both the sort order and the display label (`Jun
+2026`) from that. Casing/spacing don't matter (`"june 25"`, `JUN26`,
+`June 26` all parse the same). The one sheet with no year in its name, `sep`
+(Sept 2024, the earliest data), is handled by a small `MONTH_ALIASES` entry.
+Example historical names: `sep, OCT24, NOV24, dec24, jan25 … APRIL26, may26,
+jun26`. Any sheet whose name doesn't parse as a month is ignored.
 
 Within each sheet:
 - Column B holds row labels: `EXPENDITURE` (header), category rows (raw
@@ -77,20 +77,30 @@ prototype exactly — if you need to see the original Python version for
 reference/debugging, ask and I can reconstruct it, but the JS is the
 source of truth now since that's what runs live.
 
+Salary breakdowns come from the `Salry sheet<startYr>-<endYr>` tabs (one per
+fiscal year, Apr–Mar). The fiscal start year is read straight from the sheet
+name, and each month block is matched to its expenditure month by year+month
+(via `monthInfo`), so no per-month mapping needs maintaining and June etc.
+attach automatically.
+
+The JS parser (`parseWorkbook()` in `index.html`) mirrors a Python/openpyxl
+prototype exactly — if you need to see the original Python version for
+reference/debugging, ask and I can reconstruct it, but the JS is the
+source of truth now since that's what runs live.
+
 ## Known constraints / things to watch
-- If a re-uploaded Excel renames a sheet to something not in `MONTH_ORDER`,
-  it gets appended at the end of the order rather than sorted correctly —
-  flagged as a known limitation, not yet fixed.
+- A month sheet whose name **doesn't parse as month+year** (e.g. `Q1`,
+  `summary`, or a typo like `jne26`) is silently ignored. Sheets that *do*
+  parse as a month but have a broken internal layout are collected and shown
+  in the "skipped sheet(s)" banner after upload.
 - If the header row layout changes (e.g. "EXPENDITURE" moves out of column
-  B, or the "total" column label is renamed), that sheet will silently be
-  skipped rather than erroring loudly.
+  B, or the "total" column label is renamed), that sheet is skipped and
+  surfaced in the skip banner (it won't error loudly, but it's no longer
+  fully silent).
 - Currency formatting assumes INR (₹), Indian digit grouping
   (`toLocaleString('en-IN')`).
 
 ## Possible next steps (not yet done, just flagged in conversation)
-- Make sheet-name matching more tolerant of format drift.
-- Surface a warning in the UI when a sheet is skipped during parsing,
-  instead of failing silently.
 - Karthik doesn't have a paid Excel plan — he edits the source spreadsheet
   via Google Sheets / LibreOffice / WPS / Excel Online and exports as
   `.xlsx` before uploading to the dashboard.
