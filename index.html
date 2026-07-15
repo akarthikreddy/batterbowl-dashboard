@@ -472,6 +472,18 @@ const MONTH_META = [
   { key: 'march26', label: 'Mar 2026' },
   { key: 'APRIL26', label: 'Apr 2026' },
   { key: 'may26', label: 'May 2026' },
+  { key: 'june26', label: 'Jun 2026' },
+  { key: 'july26', label: 'Jul 2026' },
+  { key: 'aug26', label: 'Aug 2026' },
+  { key: 'sep26', label: 'Sep 2026' },
+  { key: 'oct26', label: 'Oct 2026' },
+  { key: 'nov26', label: 'Nov 2026' },
+  { key: 'dec26', label: 'Dec 2026' },
+  { key: 'jan27', label: 'Jan 2027' },
+  { key: 'feb27', label: 'Feb 2027' },
+  { key: 'march27', label: 'Mar 2027' },
+  { key: 'april27', label: 'Apr 2027' },
+  { key: 'may27', label: 'May 2027' },
 ];
 const MONTH_ORDER = MONTH_META.map(m => m.key);
 const MONTH_LABELS = Object.fromEntries(MONTH_META.map(m => [m.key, m.label]));
@@ -593,7 +605,8 @@ const SALARY_MONTH_MAP = {
     SEP: 'sep25', OCT: 'oct25', NOV: 'nov25', DEC: 'dec25', JAN: 'jan26', FEB: 'feb26', MARCH: 'march26'
   },
   'Salry sheet26-27': {
-    APRIL: 'APRIL26', MAY: 'may26'
+    APRIL: 'APRIL26', MAY: 'may26', JUNE: 'june26', JULY: 'july26', AUG: 'aug26',
+    SEP: 'sep26', OCT: 'oct26', NOV: 'nov26', DEC: 'dec26', JAN: 'jan27', FEB: 'feb27', MARCH: 'march27'
   }
 };
 
@@ -648,16 +661,46 @@ function parseSalarySheets(workbook) {
   return result;
 }
 
+function normalizeSheetName(name) {
+  return String(name).trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+// Sheets that are intentionally NOT month sheets (salary ledgers, planning tabs).
+const NON_MONTH_SHEETS = new Set(
+  [...Object.keys(SALARY_MONTH_MAP), 'project', 'new invest', 'estimate']
+    .map(normalizeSheetName)
+);
+
 function parseWorkbook(workbook) {
   const data = {};
   const skipped = [];
+
+  // Case/space-insensitive lookup of the sheets actually in the file, so
+  // "june26", "JUNE26" and "June 26" all match the same MONTH_ORDER key.
+  const present = {};
+  for (const name of workbook.SheetNames) present[normalizeSheetName(name)] = name;
+  const usedSheets = new Set();
+
+  // 1) Known months, in canonical order.
   for (const key of MONTH_ORDER) {
-    const ws = workbook.Sheets[key];
-    if (!ws) { skipped.push(key); continue; }
-    const parsed = parseSheet(ws);
-    if (!parsed) { skipped.push(key); continue; }
+    const actual = present[normalizeSheetName(key)];
+    if (!actual) continue;                            // month just isn't in this file — not an error
+    usedSheets.add(actual);
+    const parsed = parseSheet(workbook.Sheets[actual]);
+    if (!parsed) { skipped.push(actual); continue; }  // present but wrong layout — worth a warning
     data[key] = parsed;
   }
+
+  // 2) Any other month-shaped sheet (e.g. a brand-new month not yet added to
+  //    MONTH_ORDER) gets picked up and appended instead of being dropped.
+  for (const name of workbook.SheetNames) {
+    if (usedSheets.has(name)) continue;
+    if (NON_MONTH_SHEETS.has(normalizeSheetName(name))) continue;
+    const parsed = parseSheet(workbook.Sheets[name]);
+    if (!parsed) continue;                            // not a month sheet — ignore quietly
+    data[name] = parsed;
+  }
+
   const salaryByMonth = parseSalarySheets(workbook);
   for (const [key, employees] of Object.entries(salaryByMonth)) {
     if (data[key]) data[key].salaryBreakdown = employees;
@@ -735,7 +778,10 @@ function fmtINR(n) {
 }
 
 function availableMonths() {
-  return MONTH_ORDER.filter(k => APP_DATA[k]);
+  const known = MONTH_ORDER.filter(k => APP_DATA[k]);
+  // Any month-shaped sheet not yet in MONTH_ORDER is appended at the end.
+  const extras = Object.keys(APP_DATA).filter(k => !MONTH_ORDER.includes(k));
+  return known.concat(extras);
 }
 
 function monthMetrics(key) {
